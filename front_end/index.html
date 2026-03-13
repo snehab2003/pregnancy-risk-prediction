@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BabyBloom AI - Pregnancy Health Tracker</title>
+    <link rel="stylesheet" href="styles/landing.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-spacer"></div>
+            <div class="site-name">BabyBloom AI</div>
+            <div class="nav-buttons">
+                <button class="btn-secondary" id="loginBtn">Login</button>
+                <button class="btn-primary" id="registerBtn">Register</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Slideshow -->
+    <section class="hero">
+        <div class="slideshow-container">
+            <div class="slide fade active">
+                <div class="slide-content">
+                    <img src="media/bannerPregAI1UP.png">
+                </div>
+            </div>
+            <div class="slide fade">
+                <div class="slide-content">
+                    <img src="media/bannerPregAI2UP.png">
+                </div>
+            </div>
+            <div class="slide fade">
+                <div class="slide-content">
+                    <img src="media/bannerPregAI3UP.png">
+                </div>
+            </div>
+            
+            <!-- Slideshow Navigation -->
+            <div class="slideshow-dots">
+                <span class="dot active" onclick="currentSlide(0)"></span>
+                <span class="dot" onclick="currentSlide(1)"></span>
+                <span class="dot" onclick="currentSlide(2)"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+     <div id="landingContent">
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="container text-center">
+                    <h1 class="hero-title">Welcome to BabyBloom AI</h1>
+                    <p class="hero-subtitle">Because every heartbeat matters</p>
+                    <p class="hero-description">
+                        BabyBloom AI is a smart pregnancy companion designed to support expectant mothers through every stage of their journey. By combining artificial intelligence, medical insights, and compassionate care, BabyBloom AI helps you monitor fetal health, understand pregnancy risks, and make informed decisions with confidence. Our goal is simple — <strong>a healthier mother and a safer beginning for every baby.</strong>
+                    </p>
+                </div>
+            </section>
+
+            <!-- Why Choose Section -->
+            <section class="why-section">
+                <div class="container">
+                    <div class="why-card">
+                        <h2 class="section-title">Why Choose BabyBloom AI?</h2>
+                        <p class="section-description">
+                            Pregnancy is a beautiful phase, but it can also bring uncertainty and anxiety. BabyBloom AI acts as a digital support system, helping mothers stay informed and reassured at all times.
+                        </p>
+                        
+    
+        
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Health Metrics</h3>
+                    <p>Track vital health indicators with interactive graphs</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Assistant</h3>
+                    <p>24/7 AI chatbot for pregnancy-related queries</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚕️</div>
+                    <h3>Risk Assessment</h3>
+                    <p>ML-based pregnancy risk prediction</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Goal Tracking</h3>
+                    <p>Set and monitor weekly health goals</p>
+                </div>
+            </div>
+        
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="offerings-section">
+                <div class="container">
+                    <h2 class="section-title text-center">✨ What BabyBloom AI Offers</h2>
+                    <div class="offerings-list">
+                        <div class="offering-card">
+                            <h3 class="offering-title">🩷 AI-Based Pregnancy Risk Prediction</h3>
+                            <p class="offering-desc">Analyze maternal and fetal parameters to identify potential risks at an early stage.</p>
+                        </div>
+                        <div class="offering-card">
+                            <h3 class="offering-title">📈 Fetal Health Monitoring & Visualization</h3>
+                            <p class="offering-desc">View health trends through interactive charts that simplify complex medical data.</p>
+                        </div>
+                        <div class="offering-card">
+                            <h3 class="offering-title">💬 24/7 Intelligent Pregnancy Assistant</h3>
+                            <p class="offering-desc">Get instant answers to pregnancy-related questions through our AI chatbot.</p>
+                        </div>
+                        <div class="offering-card">
+                            <h3 class="offering-title">📋 Personalized Health Insights</h3>
+                            <p class="offering-desc">Receive recommendations tailored to your pregnancy stage and health data.</p>
+                        </div>
+                        <div class="offering-card">
+                            <h3 class="offering-title">🔒 Safe & Secure Data Handling</h3>
+                            <p class="offering-desc">Your health data is protected with strict privacy measures.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trust Section -->
+            <section class="trust-section">
+                <div class="container text-center">
+                    <h2 class="section-title">🌷 Designed with Care, Built with Trust</h2>
+                    <p class="trust-description">
+                        BabyBloom AI is not just a technology-driven platform — it is built with empathy.
+                        Every color, feature, and interaction is thoughtfully designed to provide comfort, clarity, and confidence to expecting mothers. 
+                        You are never alone on this journey — BabyBloom AI is always by your side.
+                    </p>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="cta-section">
+                <div class="container text-center">
+                    <h3 class="cta-title">Start Your Journey with BabyBloom AI</h3>
+                    <button onclick="openRegisterModal()" class="btn-cta">Get Started Today</button>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <p>© 2026 BabyBloom AI. All rights reserved. | Empowering mothers, protecting lives.</p>
+            </footer>
+        </div>
+    </div>
+
+    
+
+    <!-- Blur Container -->
+    <div class="blur-overlay" id="blurOverlay"></div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close" id="closeLogin">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn-primary btn-full">Login</button>
+            </form>
+            <p class="modal-footer">Don't have an account? <a href="#" id="switchToRegister">Register here</a></p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <span class="close" id="closeRegister">&times;</span>
+            <h2>Register</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerName">Full Name</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerAge">Age</label>
+                    <input type="number" id="registerAge" required min="18" max="100">
+                </div> 
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerTrimester">Current Trimester</label>
+                    <select id="registerTrimester" required>
+                        <option value="">Select Trimester</option>
+                        <option value="1">First Trimester (1-12 weeks)</option>
+                        <option value="2">Second Trimester (13-26 weeks)</option>
+                        <option value="3">Third Trimester (27-40 weeks)</option>
+                    </select>
+                </div>
+    
+                <button type="submit" class="btn-primary btn-full">Register</button>
+            </form>
+            <p class="modal-footer">Already have an account? <a href="#" id="switchToLogin">Login here</a></p>
+        </div>
+    </div>
+
+    <script src="scripts/landing.js"></script>
+</body>
+</html>
