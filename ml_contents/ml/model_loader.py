@@ -1,3 +1,8 @@
+"""
+Pregnancy Risk Prediction - Model Loader
+Loads the trained Keras MLP model and StandardScaler for predictions.
+"""
+
 import os
 import joblib
 from tensorflow.keras.models import load_model
@@ -5,8 +10,8 @@ from tensorflow.keras.models import load_model
 # Get current folder path (ml/)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Model paths
-MODEL_PATH = os.path.join(BASE_DIR, "models", "mlp_model.h5")
+# Model paths (Keras .keras format, scaler .pkl)
+MODEL_PATH = os.path.join(BASE_DIR, "models", "mlp_model.keras")
 SCALER_PATH = os.path.join(BASE_DIR, "models", "scaler.pkl")
 
 # Load model and scaler ONCE
