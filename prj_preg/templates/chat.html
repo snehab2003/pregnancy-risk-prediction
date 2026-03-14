@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat - BabyBloom AI</title>
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <h1>AI Chat Assistant</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content chat-main">
+        <div class="chat-container">
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="bot-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <p>Hello! I'm your BabyBloom AI assistant. I'm here to help answer your pregnancy-related questions and provide support throughout your journey.</p>
+                        <p>How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions -->
+            <div class="quick-suggestions" id="quickSuggestions">
+                <button class="suggestion-btn" onclick="sendQuickMessage('What foods should I avoid during pregnancy?')">
+                    Foods to avoid
+                </button>
+                <button class="suggestion-btn" onclick="sendQuickMessage('What are safe exercises during pregnancy?')">
+                    Safe exercises
+                </button>
+                <button class="suggestion-btn" onclick="sendQuickMessage('How can I manage morning sickness?')">
+                    Morning sickness tips
+                </button>
+                <button class="suggestion-btn" onclick="sendQuickMessage('What are warning signs I should watch for?')">
+                    Warning signs
+                </button>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <form id="chatForm">
+                    <input 
+                        type="text" 
+                        id="chatInput" 
+                        placeholder="Type your message..." 
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" class="send-btn">
+                        <span class="send-icon">➤</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Footer Navigation -->
+    <footer class="floating-footer">
+        <a href="{% url 'dashboard' %}" class="footer-btn">
+            <span class="footer-icon">🏠</span>
+            <span class="footer-label">Home</span>
+        </a>
+        <a href="{% url 'goal' %}" class="footer-btn">
+            <span class="footer-icon">🎯</span>
+            <span class="footer-label">Goals</span>
+        </a>
+        <a href="{% url 'medicine' %}" class="footer-btn">
+            <span class="footer-icon">💊</span>
+            <span class="footer-label">Medicine</span>
+        </a>
+        <a href="{% url 'chat' %}" class="footer-btn active">
+            <span class="footer-icon">🤖</span>
+            <span class="footer-label">AI Chat</span>
+        </a>
+        <a href="{% url 'risk' %}" class="footer-btn">
+            <span class="footer-icon">📊</span>
+            <span class="footer-label">Risk</span>
+        </a>
+
+    </footer>
+
+
+    <script src="{% static 'js/common.js' %}"></script>
+    <script src="{% static 'js/chat.js' %}"></script>
+</body>
+</html>

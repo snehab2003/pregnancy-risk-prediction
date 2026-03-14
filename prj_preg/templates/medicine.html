@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Tracker - BabyBloom AI</title>
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/medicine.css' %}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <h1>Medicine Tracker</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Add Medicine Section -->
+            <section class="add-medicine-section card">
+                <h3>Add New Medicine</h3>
+                <form id="addMedicineForm">
+                    <div class="form-group">
+                        <label for="medicineName">Medicine Name</label>
+                        <input type="text" id="medicineName" placeholder="e.g., Prenatal Vitamins" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="medicineTime">Time</label>
+                            <input type="time" id="medicineTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="medicineFrequency">Frequency</label>
+                            <select id="medicineFrequency" required>
+                                <option value="">Select Frequency</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+            
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="weeklyDayGroup" style="display: none;">
+                        <label for="weeklyDay">Day of Week</label>
+                        <select id="weeklyDay">
+                            <option value="0">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="medicineNotes">Notes (Optional)</label>
+                        <textarea id="medicineNotes" placeholder="e.g., Take with food"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enableAlarm" checked>
+                            Enable reminder alarm
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-primary">Add Medicine</button>
+                </form>
+            </section>
+
+            <!-- Today's Medicines -->
+            <section class="todays-medicines">
+                <h3>📅 Today's Medicines</h3>
+                <div id="todaysMedicinesContainer"></div>
+            </section>
+
+            <!-- All Medicines List -->
+            <section class="medicines-list">
+                <h3>💊 All Medicines</h3>
+                <div id="medicinesContainer"></div>
+                <div id="emptyState" class="empty-state">
+                    <p>No medicines added yet. Add your first medicine above!</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Floating AI Chat Button -->
+    <a href="{% url 'chat' %}" class="floating-chat-btn">
+        <span class="chat-icon">💬</span>
+    </a>
+
+    <!-- Floating Footer Navigation -->
+    <footer class="floating-footer">
+        <a href="{% url 'dashboard' %}" class="footer-btn">
+            <span class="footer-icon">🏠</span>
+            <span class="footer-label">Home</span>
+        </a>
+        <a href="{% url 'goal' %}" class="footer-btn">
+            <span class="footer-icon">🎯</span>
+            <span class="footer-label">Goals</span>
+        </a>
+        <a href="{% url 'medicine' %}" class="footer-btn active">
+            <span class="footer-icon">💊</span>
+            <span class="footer-label">Medicine</span>
+        </a>
+        <a href="{% url 'chat' %}" class="footer-btn">
+            <span class="footer-icon">🤖</span>
+            <span class="footer-label">AI Chat</span>
+        </a>
+        <a href="{% url 'risk' %}" class="footer-btn">
+            <span class="footer-icon">📊</span>
+            <span class="footer-label">Risk</span>
+        </a>
+    </footer>
+
+
+
+    <script src="{% static 'js/common.js' %}"></script>
+    <script src="{% static 'js/medicine.js' %}"></script>
+</body>
+</html>
