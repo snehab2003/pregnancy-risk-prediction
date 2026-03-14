@@ -1,0 +1,18 @@
+# Python virtual environment (contains thousands of local files)
+.venv/
+
+# Secret API keys and environment variables (CRITICAL for security)
+.env
+
+# Spyder IDE specific files
+.spyproject/
+
+# Local Vector Database/Cache (ChromaDB, FAISS, etc.)
+db/
+
+# Local data source files (if the PDFs are large or private)
+data_pdfs/
+
+# Python cache
+__pycache__/
+*.pyc
