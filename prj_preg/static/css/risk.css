@@ -187,6 +187,82 @@
     color: #856404;
 }
 
+/* Probability Bars */
+.probabilities {
+    margin: 1rem 0;
+}
+
+.prob-bar {
+    display: flex;
+    align-items: center;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.prob-bar span {
+    min-width: 120px;
+    display: inline-block;
+}
+
+.prob-bar .bar {
+    height: 20px;
+    background: linear-gradient(90deg, #28a745 0%, #ffc107 50%, #dc3545 100%);
+    border-radius: 10px;
+    margin-left: 1rem;
+    flex: 1;
+    position: relative;
+}
+
+.prob-bar .bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+/* Latest Metrics Info */
+.latest-metrics-info {
+    background: #e8f4f8;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+}
+
+.latest-metrics-info ul {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1.5rem;
+}
+
+.latest-metrics-info li {
+    margin: 0.25rem 0;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+/* Loading and Error States */
+.risk-loading {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.1rem;
+    color: #667eea;
+}
+
+.risk-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 1.5rem;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.risk-error h4 {
+    margin-bottom: 1rem;
+}
+
 /* Health Modal Specific */
 #healthModal .modal-content {
     max-height: 90vh;

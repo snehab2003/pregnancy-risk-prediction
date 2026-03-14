@@ -108,6 +108,19 @@
             <!-- Risk Assessment -->
             <section class="risk-assessment card">
                 <h3>🤖 ML-Based Risk Assessment</h3>
+                {% if latest_metrics %}
+                <div class="latest-metrics-info">
+                    <p><strong>Using your latest health data:</strong></p>
+                    <ul>
+                        <li>Age: {{ profile.age }} years</li>
+                        <li>Blood Pressure: {{ latest_metrics.systolic_bp }}/{{ latest_metrics.diastolic_bp }} mmHg</li>
+                        <li>Blood Sugar: {{ latest_metrics.blood_sugar }} mg/dL</li>
+                        <li>Body Temperature: {{ latest_metrics.body_temp }}°C</li>
+                        <li>Heart Rate: {{ latest_metrics.heart_rate }} bpm</li>
+                        <li>Date: {{ latest_metrics.date }}</li>
+                    </ul>
+                </div>
+                {% endif %}
                 <button class="btn-primary" id="checkRiskBtn">Check Pregnancy Risk</button>
                 <div class="risk-result" id="riskResult"></div>
             </section>

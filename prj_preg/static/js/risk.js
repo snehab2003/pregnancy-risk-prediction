@@ -86,80 +86,84 @@ blurOverlay.addEventListener('click', (e) => {
 });
 
 // Health Data Form Submission
-document.getElementById('healthDataForm').addEventListener('submit', (e) => {
+document.getElementById('healthDataForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const type = document.getElementById('dataType').value;
     const date = document.getElementById('dataDate').value;
-    const healthData = getHealthData();
     
-    if (editingEntryId) {
-        healthData[type] = healthData[type].filter(e => e.id !== editingEntryId);
-        editingEntryId = null;
-    }
-
+    // Prepare data for backend
+    const healthData = {
+        date: date
+    };
+    
+    // Add the specific metric based on type
     switch(type) {
-        case 'bloodPressureSys': {
-            const systolic = parseInt(document.getElementById('systolicValue').value);
-            healthData.bloodPressureSys.push({ 
-                id: Date.now(),
-                date, 
-                value: systolic });
+        case 'bloodPressureSys':
+            healthData.systolic_bp = parseInt(document.getElementById('systolicValue').value);
             break;
-        }
-        case 'bloodPressureDia': {
-            const diastolic = parseInt(document.getElementById('diastolicValue').value);
-            healthData.bloodPressureDia.push({ 
-                id: Date.now(),
-                date, 
-                value: diastolic });
-            break;  
-        }
-        case 'bloodSugar': {
-            const bsValue = parseFloat(document.getElementById('bloodSugarValue').value);
-            healthData.bloodSugar.push({
-                id: Date.now(),
-                date,
-                value: bsValue
-            });
-
+        case 'bloodPressureDia':
+            healthData.diastolic_bp = parseInt(document.getElementById('diastolicValue').value);
             break;
-        }
-        case 'bodyTemp': {
-            const tValue = parseFloat(document.getElementById('bodyTempValue').value);
-            if (!healthData.bodyTemp) healthData.bodyTemp = [];
-            healthData.bodyTemp.push({ 
-                id: Date.now(), 
-                date, 
-                value: tValue });
+        case 'bloodSugar':
+            healthData.blood_sugar = parseFloat(document.getElementById('bloodSugarValue').value);
             break;
-        }
-        case 'heartRate': {
-            const hrValue = parseInt(document.getElementById('heartRateValue').value);
-            healthData.heartRate.push({ 
-                id: Date.now(),
-                date, 
-                value: hrValue });
+        case 'bodyTemp':
+            healthData.body_temp = parseFloat(document.getElementById('bodyTempValue').value);
             break;
-        }
+        case 'heartRate':
+            healthData.heart_rate = parseInt(document.getElementById('heartRateValue').value);
+            break;
     }
     
-    saveHealthData(healthData);
+    try {
+        // Save to backend
+        const response = await fetch('/api/save-health-data/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(healthData)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to save health data');
+        }
+        
+        // Update local data and UI
+        updateLocalHealthData(type, date, healthData);
 
-updateMetricSummaries();
-updateAllCharts();
-renderHealthEntries();
+        await loadHealthDataFromBackend();   // 🔥 important
 
-closeHealthModalFunc();
-
-alert('Health data saved successfully!');
-
+        updateMetricSummaries();
+        updateAllCharts();
+        renderHealthEntries();
+        
+        closeHealthModalFunc();
+        alert('Health data saved successfully!');
+        
+    } catch (error) {
+        console.error('Error saving health data:', error);
+        alert('Failed to save health data: ' + error.message);
+    }
 });
+
+// Helper function - put this near calculateAverage
+function getLatestByDate(arr) {
+    if (!arr || arr.length === 0) return null;
+
+    return arr.reduce((latest, current) => {
+        return new Date(current.date) > new Date(latest.date) ? current : latest;
+    });
+}
 
 // Update Metric Summaries
 function updateMetricSummaries() {
     const healthData = getHealthData();
-
+    
     // Systolic
     if (healthData.bloodPressureSys.length > 0) {
         const latestSys = getLatestByDate(healthData.bloodPressureSys);
@@ -365,6 +369,32 @@ function createIndividualCharts() {
     }
 }
 
+function createCombinedChart(canvasId) {
+
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    // IMPORTANT FIX
+    if (combinedChartInstance) {
+        combinedChartInstance.destroy();
+    }
+
+    const healthData = getHealthData();
+
+    combinedChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
 
 // Update All Charts
 function updateAllCharts() {
@@ -467,117 +497,156 @@ document.getElementById('checkRiskBtn').addEventListener('click', () => {
         return;
     }
 
-    // Simple ML simulation
-    let riskScore = 0;
-    let riskFactors = [];
-    let recommendations = [];
+    // Get latest values for prediction
+    const latestSys = getLatestByDate(healthData.bloodPressureSys);
+    const latestDia = getLatestByDate(healthData.bloodPressureDia);
+    const latestBS = getLatestByDate(healthData.bloodSugar);
+    const latestTemp = getLatestByDate(healthData.bodyTemp);
+    const latestHR = getLatestByDate(healthData.heartRate);
     
-    // Blood Sugar Analysis
-    if (healthData.bloodSugar.length > 0) {
-        const avgBS = parseFloat(calculateAverage(healthData.bloodSugar));
-        if (avgBS > 140) {
-            riskScore += 30;
-            riskFactors.push('Elevated blood sugar levels detected');
-            recommendations.push('Monitor blood sugar closely and consult with your doctor about gestational diabetes');
-        } else if (avgBS < 70) {
-            riskScore += 15;
-            riskFactors.push('Low blood sugar levels detected');
-            recommendations.push('Ensure regular meals and discuss with your healthcare provider');
-        } else {
-            recommendations.push('Blood sugar levels are within normal range - continue monitoring');
-        }
+    if (!latestSys || !latestDia || !latestBS || !latestTemp || !latestHR) {
+        alert('Please ensure you have data for all health metrics');
+        return;
     }
+
+    // Get user age from profile
+    const age = document.getElementById('profileAge') ? 
+        parseInt(document.getElementById('profileAge').value) : null;
+    
+    if (!age || age < 19) {
+        alert('Please update your age in your profile (must be 19 or older)');
+        return;
+    }
+
+    // Prepare data for API
+    const predictionData = {
+        age: age,
+        systolic_bp: latestSys.value,
+        diastolic_bp: latestDia.value,
+        blood_sugar: latestBS.value,
+        body_temp: latestTemp.value, // Already in Celsius
+        heart_rate: latestHR.value
+    };
+
+    // Show loading
+    const resultDiv = document.getElementById('riskResult');
+    resultDiv.innerHTML = '<div class="risk-loading">🤖 Analyzing your health data with AI...</div>';
+    resultDiv.classList.add('show');
+
+    // Call the prediction API
+    fetch('/api/predict-risk/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(predictionData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Display results
+        displayRiskResults(data, latestSys, latestDia, latestBS, latestTemp, latestHR);
+    })
+    .catch(error => {
+        console.error('Prediction error:', error);
+        resultDiv.innerHTML = `
+            <div class="risk-error">
+                <h4>❌ Prediction Failed</h4>
+                <p>${error.message}</p>
+                <p>Please try again or contact support if the problem persists.</p>
+            </div>
+        `;
+    });
+});
+
+// Helper function to display risk results
+function displayRiskResults(data, latestSys, latestDia, latestBS, latestTemp, latestHR) {
+    const resultDiv = document.getElementById('riskResult');
+    
+    // Determine CSS class based on risk level
+    let riskClass = 'low';
+    if (data.risk_level === 'HIGH RISK') riskClass = 'high';
+    else if (data.risk_level === 'MEDIUM RISK') riskClass = 'medium';
+    
+    // Generate recommendations based on the actual values
+    let recommendations = [];
+    let riskFactors = [];
     
     // Blood Pressure Analysis
-    if (healthData.bloodPressureSys.length > 0) {
-        const latest = getLatestByDate(healthData.bloodPressureSys);
-        if (latest.value > 140) {
-            riskScore += 35;
-            riskFactors.push('High systolic blood pressure detected');
-            recommendations.push('Contact your healthcare provider immediately about elevated blood pressure');
-        } else if (latest.value < 90) {
-            riskScore += 10;
-            riskFactors.push('Low systolic blood pressure detected');
-            recommendations.push('Stay hydrated and discuss symptoms with your doctor');
-        } else {
-            recommendations.push('Blood pressure is within normal range');
-        }
-    }
-
-    // Diastolic Blood Pressure Analysis
-    if (healthData.bloodPressureDia.length > 0) {
-        const latest = getLatestByDate(healthData.bloodPressureDia);
-        if (latest.value > 90) {
-            riskScore += 30;
-            riskFactors.push('High diastolic blood pressure detected');
-            recommendations.push('Contact your healthcare provider immediately about elevated blood pressure');
-        } else if (latest.value < 60) {
-            riskScore += 10;
-            riskFactors.push('Low diastolic blood pressure detected');
-            recommendations.push('Stay hydrated and discuss symptoms with your doctor');
-        } else {
-            recommendations.push('Blood pressure is within normal range');
-        }
+    if (latestSys.value > 140 || latestDia.value > 90) {
+        riskFactors.push('High blood pressure detected');
+        recommendations.push('Contact your healthcare provider immediately about elevated blood pressure');
+    } else if (latestSys.value < 90 || latestDia.value < 60) {
+        riskFactors.push('Low blood pressure detected');
+        recommendations.push('Stay hydrated and discuss symptoms with your doctor');
+    } else {
+        recommendations.push('Blood pressure is within normal range');
     }
     
-    // body Temperature Analysis
-    if (healthData.bodyTemp && healthData.bodyTemp.length > 0) {
-        const avgTemp = parseFloat(calculateAverage(healthData.bodyTemp));
-        if (avgTemp > 38) {
-            riskScore += 20;
-            riskFactors.push('Elevated body temperature detected');
-            recommendations.push('Monitor for signs of infection and contact your healthcare provider');
-        } else if (avgTemp < 36) {
-            riskScore += 10;
-            riskFactors.push('Lower body temperature than typical for pregnancy');
-            recommendations.push('Ensure proper nutrition and discuss with your healthcare provider');
-        } else {
-            recommendations.push('Body temperature is within expected range for pregnancy');
-        }
-    }   
-
+    // Blood Sugar Analysis
+    if (latestBS.value > 140) {
+        riskFactors.push('Elevated blood sugar levels detected');
+        recommendations.push('Monitor blood sugar closely and consult with your doctor about gestational diabetes');
+    } else if (latestBS.value < 70) {
+        riskFactors.push('Low blood sugar levels detected');
+        recommendations.push('Ensure regular meals and discuss with your healthcare provider');
+    } else {
+        recommendations.push('Blood sugar levels are within normal range - continue monitoring');
+    }
+    
+    // Body Temperature Analysis
+    if (latestTemp.value > 38) {
+        riskFactors.push('Elevated body temperature detected');
+        recommendations.push('Monitor for signs of infection and contact your healthcare provider');
+    } else if (latestTemp.value < 36) {
+        riskFactors.push('Lower body temperature than typical for pregnancy');
+        recommendations.push('Ensure proper nutrition and discuss with your healthcare provider');
+    } else {
+        recommendations.push('Body temperature is within expected range for pregnancy');
+    }
+    
     // Heart Rate Analysis
-    if (healthData.heartRate.length > 0) {
-        const avgHR = parseFloat(calculateAverage(healthData.heartRate));
-        if (avgHR > 100) {
-            riskScore += 15;
-            riskFactors.push('Elevated heart rate detected');
-            recommendations.push('Monitor heart rate and report persistent elevation to your doctor');
-        } else if (avgHR < 60) {
-            riskScore += 10;
-            riskFactors.push('Lower heart rate than typical for pregnancy');
-            recommendations.push('Discuss heart rate with your healthcare provider');
-        } else {
-            recommendations.push('Heart rate is within expected range for pregnancy');
-        }
+    if (latestHR.value > 100) {
+        riskFactors.push('Elevated heart rate detected');
+        recommendations.push('Monitor heart rate and report persistent elevation to your doctor');
+    } else if (latestHR.value < 60) {
+        riskFactors.push('Lower heart rate than typical for pregnancy');
+        recommendations.push('Discuss heart rate with your healthcare provider');
+    } else {
+        recommendations.push('Heart rate is within expected range for pregnancy');
     }
     
-    
-    
-    // Determine Risk Level
-    let riskLevel = 'Low';
-    let riskClass = 'low';
-    if (riskScore > 50) {
-        riskLevel = 'High';
-        riskClass = 'high';
-    } else if (riskScore > 25) {
-        riskLevel = 'Medium';
-        riskClass = 'medium';
-    }
-    
-    // Display Results
-    const resultDiv = document.getElementById('riskResult');
     resultDiv.innerHTML = `
         <div class="risk-level ${riskClass}">
-            ${riskLevel} Risk
+            ${data.risk_level}
         </div>
         <div class="risk-details">
+            <h4>AI Prediction Probabilities:</h4>
+            <div class="probabilities">
+                <div class="prob-bar">
+                    <span>Low Risk: ${(data.probabilities.low_risk * 100).toFixed(1)}%</span>
+                    <div class="bar" style="width: ${data.probabilities.low_risk * 100}%"></div>
+                </div>
+                <div class="prob-bar">
+                    <span>Medium Risk: ${(data.probabilities.medium_risk * 100).toFixed(1)}%</span>
+                    <div class="bar" style="width: ${data.probabilities.medium_risk * 100}%"></div>
+                </div>
+                <div class="prob-bar">
+                    <span>High Risk: ${(data.probabilities.high_risk * 100).toFixed(1)}%</span>
+                    <div class="bar" style="width: ${data.probabilities.high_risk * 100}%"></div>
+                </div>
+            </div>
+            
             ${riskFactors.length > 0 ? `
                 <h4>Risk Factors Identified:</h4>
                 <ul>
                     ${riskFactors.map(f => `<li>${f}</li>`).join('')}
                 </ul>
-            ` : '<h4>No significant risk factors identified</h4>'}
+            ` : '<h4>No significant risk factors identified from current metrics</h4>'}
             
             <h4>Recommendations:</h4>
             <ul>
@@ -585,28 +654,166 @@ document.getElementById('checkRiskBtn').addEventListener('click', () => {
             </ul>
         </div>
         <div class="risk-disclaimer">
-            <strong>⚠️ Important:</strong> This is a simplified risk assessment based on limited data. 
+            <strong>⚠️ Important:</strong> ${data.fallback ? 
+                'This assessment uses rule-based analysis due to technical limitations. For full AI-powered predictions, TensorFlow needs to be properly configured.' : 
+                'This AI-powered risk assessment uses machine learning trained on maternal health data.'} 
             It is NOT a substitute for professional medical advice. Always consult with your healthcare 
             provider for accurate diagnosis and personalized medical guidance.
         </div>
     `;
-    resultDiv.classList.add('show');
     
     // Scroll to result
     resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-});
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
 // Initialize
-document.addEventListener("DOMContentLoaded", () => {
 
-    // Set today's date
+
+// Helper Functions for Health Data Management
+
+// Update local storage after saving to backend
+function updateLocalHealthData(type, date, data) {
+    const healthData = getHealthData();
+    
+    // Create entry object
+    const entry = {
+        id: Date.now(),
+        date: date,
+        value: null
+    };
+    
+    // Set the value based on type
+    switch(type) {
+        case 'bloodPressureSys':
+            entry.value = data.systolic_bp;
+            healthData.bloodPressureSys.push(entry);
+            break;
+        case 'bloodPressureDia':
+            entry.value = data.diastolic_bp;
+            healthData.bloodPressureDia.push(entry);
+            break;
+        case 'bloodSugar':
+            entry.value = data.blood_sugar;
+            healthData.bloodSugar.push(entry);
+            break;
+        case 'bodyTemp':
+            entry.value = data.body_temp;
+            if (!healthData.bodyTemp) healthData.bodyTemp = [];
+            healthData.bodyTemp.push(entry);
+            break;
+        case 'heartRate':
+            entry.value = data.heart_rate;
+            healthData.heartRate.push(entry);
+            break;
+    }
+    
+    saveHealthData(healthData);
+}
+
+// Load health data from backend and merge with local data
+async function loadHealthDataFromBackend() {
+    try {
+        const response = await fetch('/api/get-health-data/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        if (response.ok) {
+            const backendData = await response.json();
+            mergeBackendData(backendData);
+        }
+    } catch (error) {
+        console.log('Could not load backend data, using local data only:', error);
+    }
+}
+
+// Merge backend data with local data
+function mergeBackendData(backendData) {
+    const localData = getHealthData();
+    
+    // Convert backend data format to local format
+    backendData.forEach(item => {
+        const dateStr = item.date;
+        
+        // Add systolic BP
+        if (item.systolic_bp && !localData.bloodPressureSys.some(e => e.date === dateStr)) {
+            localData.bloodPressureSys.push({
+                id: Date.now() + Math.random(),
+                date: dateStr,
+                value: parseInt(item.systolic_bp)
+            });
+        }
+        
+        // Add diastolic BP
+        if (item.diastolic_bp && !localData.bloodPressureDia.some(e => e.date === dateStr)) {
+            localData.bloodPressureDia.push({
+                id: Date.now() + Math.random(),
+                date: dateStr,
+                value: parseInt(item.diastolic_bp)
+            });
+        }
+        
+        // Add blood sugar
+        if (item.blood_sugar && !localData.bloodSugar.some(e => e.date === dateStr)) {
+            localData.bloodSugar.push({
+                id: Date.now() + Math.random(),
+                date: dateStr,
+                value: parseFloat(item.blood_sugar)
+            });
+        }
+        
+        // Add body temp
+        if (item.body_temp && (!localData.bodyTemp || !localData.bodyTemp.some(e => e.date === dateStr))) {
+            if (!localData.bodyTemp) localData.bodyTemp = [];
+            localData.bodyTemp.push({
+                id: Date.now() + Math.random(),
+                date: dateStr,
+                value: parseFloat(item.body_temp)
+            });
+        }
+        
+        // Add heart rate
+        if (item.heart_rate && !localData.heartRate.some(e => e.date === dateStr)) {
+            localData.heartRate.push({
+                id: Date.now() + Math.random(),
+                date: dateStr,
+                value: parseInt(item.heart_rate)
+            });
+        }
+    });
+    
+    saveHealthData(localData);
+}
+
+// Initialize - load data from backend on page load
+document.addEventListener('DOMContentLoaded', async () => {
+
     const dateInput = document.getElementById('dataDate');
     if (dateInput) dateInput.valueAsDate = new Date();
+
+    await loadHealthDataFromBackend();
 
     updateMetricSummaries();
     updateAllCharts();
     renderHealthEntries();
 
 });
-
 

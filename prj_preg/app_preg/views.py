@@ -3,6 +3,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+import subprocess
+import os
+import sys
 
 
 def index(request):
@@ -138,10 +145,141 @@ def risk(request):
     context = {}
     if hasattr(request.user, 'profile'):
         context['profile'] = request.user.profile
+
+        # Get latest health metrics for the user
+        from .models import HealthMetric
+        latest_metrics = HealthMetric.objects.filter(user=request.user).order_by('-date').first()
+        if latest_metrics:
+            context['latest_metrics'] = latest_metrics
     return render(request, 'risk.html', context)
+
+
+@csrf_exempt
+@require_POST
+@login_required
+def predict_risk(request):
+    """API endpoint for ML-based risk prediction."""
+    try:
+        data = json.loads(request.body)
+
+        # Extract features
+        age = data.get('age')
+        systolic_bp = data.get('systolic_bp')
+        diastolic_bp = data.get('diastolic_bp')
+        blood_sugar = data.get('blood_sugar')
+        body_temp = data.get('body_temp')
+        heart_rate = data.get('heart_rate')
+
+        # Validate required fields
+        if not all([age, systolic_bp, diastolic_bp, blood_sugar, body_temp, heart_rate]):
+            return JsonResponse({'error': 'All health metrics are required'}, status=400)
+
+        # Call the ML predictor script as a subprocess
+        predictor_script = os.path.join(os.path.dirname(__file__), '..', 'ml_predictor.py')
+
+        result = subprocess.run([
+            sys.executable, predictor_script,
+            str(age), str(systolic_bp), str(diastolic_bp),
+            str(blood_sugar), str(body_temp), str(heart_rate)
+        ], capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(__file__)))
+
+        if result.returncode != 0:
+            return JsonResponse({'error': 'Prediction failed', 'details': result.stderr}, status=500)
+
+        # Parse the result
+        try:
+            prediction_result = json.loads(result.stdout.strip())
+            if 'error' in prediction_result:
+                return JsonResponse({'error': prediction_result['error']}, status=500)
+            return JsonResponse(prediction_result)
+        except:
+            return JsonResponse({'error': 'Failed to parse prediction result'}, status=500)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def logout_view(request):
     """Log the user out and send back to landing page."""
     logout(request)
     return redirect('index')
+
+
+@csrf_exempt
+@require_POST
+@login_required
+def save_health_data(request):
+    """API endpoint to save health metrics data."""
+    try:
+        data = json.loads(request.body)
+
+        # Extract data
+        date = data.get('date')
+        systolic_bp = data.get('systolic_bp')
+        diastolic_bp = data.get('diastolic_bp')
+        blood_sugar = data.get('blood_sugar')
+        body_temp = data.get('body_temp')
+        heart_rate = data.get('heart_rate')
+
+        # Validate required fields - at least one metric should be provided
+        if not any([systolic_bp, diastolic_bp, blood_sugar, body_temp, heart_rate]):
+            return JsonResponse({'error': 'At least one health metric is required'}, status=400)
+
+        # Get or create HealthMetric for this date
+        from .models import HealthMetric
+        health_metric, created = HealthMetric.objects.get_or_create(
+            user=request.user,
+            date=date,
+            defaults={}
+        )
+
+        # Update the fields that were provided
+        if systolic_bp is not None:
+            health_metric.systolic_bp = systolic_bp
+        if diastolic_bp is not None:
+            health_metric.diastolic_bp = diastolic_bp
+        if blood_sugar is not None:
+            health_metric.blood_sugar = blood_sugar
+        if body_temp is not None:
+            health_metric.body_temp = body_temp
+        if heart_rate is not None:
+            health_metric.heart_rate = heart_rate
+
+        health_metric.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Health data saved successfully',
+            'created': created
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def get_health_data(request):
+    """API endpoint to retrieve user's health metrics data."""
+    try:
+        from .models import HealthMetric
+        health_metrics = HealthMetric.objects.filter(user=request.user).order_by('-date')
+        
+        data = []
+        for metric in health_metrics:
+            data.append({
+                'date': metric.date.isoformat(),
+                'systolic_bp': metric.systolic_bp,
+                'diastolic_bp': metric.diastolic_bp,
+                'blood_sugar': float(metric.blood_sugar) if metric.blood_sugar else None,
+                'body_temp': float(metric.body_temp) if metric.body_temp else None,
+                'heart_rate': metric.heart_rate
+            })
+        
+        return JsonResponse({'health_data': data})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
