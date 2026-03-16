@@ -134,10 +134,8 @@ document.getElementById('healthDataForm').addEventListener('submit', async (e) =
         }
         
         // Update local data and UI
-        updateLocalHealthData(type, date, healthData);
-
-        await loadHealthDataFromBackend();   // 🔥 important
-
+        await loadHealthDataFromBackend();
+        
         updateMetricSummaries();
         updateAllCharts();
         renderHealthEntries();
@@ -418,10 +416,9 @@ function renderHealthEntries() {
         container.innerHTML = dataArray.map(entry => `
             <div class="entry-item">
                 <span>${entry.date} - ${entry.value}</span>
-                <div>
-                    <button onclick="editHealthEntry('${typeKey}', ${entry.id})">Edit</button>
-                    <button onclick="deleteHealthEntry('${typeKey}', ${entry.id})">Delete</button>
-
+                <div class="entry-actions">
+                    <button class="btn-edit" onclick="editHealthEntry('${typeKey}', ${entry.id})">Edit</button>
+                    <button class="btn-delete" onclick="deleteHealthEntry('${typeKey}', ${entry.id})">Delete</button>
                 </div>
             </div>
         `).join('');
@@ -747,60 +744,59 @@ async function loadHealthDataFromBackend() {
 
 // Merge backend data with local data
 function mergeBackendData(backendData) {
-    const localData = getHealthData();
+    const newLocalData = {
+        bloodPressureSys: [],
+        bloodPressureDia: [],
+        bloodSugar: [],
+        bodyTemp: [],
+        heartRate: []
+    };
     
-    // Convert backend data format to local format
     backendData.forEach(item => {
         const dateStr = item.date;
         
-        // Add systolic BP
-        if (item.systolic_bp && !localData.bloodPressureSys.some(e => e.date === dateStr)) {
-            localData.bloodPressureSys.push({
+        if (item.systolic_bp !== null) {
+            newLocalData.bloodPressureSys.push({
                 id: Date.now() + Math.random(),
                 date: dateStr,
                 value: parseInt(item.systolic_bp)
             });
         }
         
-        // Add diastolic BP
-        if (item.diastolic_bp && !localData.bloodPressureDia.some(e => e.date === dateStr)) {
-            localData.bloodPressureDia.push({
+        if (item.diastolic_bp !== null) {
+            newLocalData.bloodPressureDia.push({
                 id: Date.now() + Math.random(),
                 date: dateStr,
                 value: parseInt(item.diastolic_bp)
             });
         }
         
-        // Add blood sugar
-        if (item.blood_sugar && !localData.bloodSugar.some(e => e.date === dateStr)) {
-            localData.bloodSugar.push({
+        if (item.blood_sugar !== null) {
+            newLocalData.bloodSugar.push({
                 id: Date.now() + Math.random(),
                 date: dateStr,
                 value: parseFloat(item.blood_sugar)
             });
         }
         
-        // Add body temp
-        if (item.body_temp && (!localData.bodyTemp || !localData.bodyTemp.some(e => e.date === dateStr))) {
-            if (!localData.bodyTemp) localData.bodyTemp = [];
-            localData.bodyTemp.push({
+        if (item.body_temp !== null) {
+            newLocalData.bodyTemp.push({
                 id: Date.now() + Math.random(),
                 date: dateStr,
                 value: parseFloat(item.body_temp)
             });
         }
         
-        // Add heart rate
-        if (item.heart_rate && !localData.heartRate.some(e => e.date === dateStr)) {
-            localData.heartRate.push({
+        if (item.heart_rate !== null) {
+            newLocalData.heartRate.push({
                 id: Date.now() + Math.random(),
                 date: dateStr,
                 value: parseInt(item.heart_rate)
             });
         }
     });
-    
-    saveHealthData(localData);
+
+    saveHealthData(newLocalData);
 }
 
 // Initialize - load data from backend on page load

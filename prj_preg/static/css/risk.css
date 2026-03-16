@@ -284,6 +284,47 @@
     border-radius: 3px;
 }
 
+.entry-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+.entry-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit, .btn-delete {
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-edit {
+    background: #e8f4f8;
+    color: #4facfe;
+}
+
+.btn-edit:hover {
+    background: #d4effa;
+}
+
+.btn-delete {
+    background: #f8d7da;
+    color: #dc3545;
+}
+
+.btn-delete:hover {
+    background: #f1b0b7;
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {

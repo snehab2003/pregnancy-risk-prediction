@@ -11,6 +11,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     # additional feature pages
     path('chat/', views.chat, name='chat'),
+    path('api/chat/', views.chat_api, name='chat_api'),
     path('goal/', views.goal, name='goal'),
     path('medicine/', views.medicine, name='medicine'),
     path('risk/', views.risk, name='risk'),

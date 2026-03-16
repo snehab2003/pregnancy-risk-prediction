@@ -126,6 +126,13 @@ STATICFILES_DIRS=[
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 import os
+from dotenv import load_dotenv
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Load Google API Key from the ChatBot .env file
+dotenv_path = os.path.join(BASE_DIR.parent, 'Pregnancy_Chat_Bot', '.env')
+load_dotenv(dotenv_path)
+
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', 'AIzaSyA9ep3jgRIQk9iiZF6f0QKKK5O3xT66umk')

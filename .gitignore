@@ -16,3 +16,4 @@ data_pdfs/
 # Python cache
 __pycache__/
 *.pyc
+prj_preg/db.sqlite3

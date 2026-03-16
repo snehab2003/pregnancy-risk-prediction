@@ -58,9 +58,9 @@
                         <button class="btn-add-small" onclick="openHealthModal('bloodSugar')">+ Add</button>
                     </div>
                     <div class="metric-value" id="bloodSugarCurrent">--</div>
-                    <div class="metric-label">Current (mg/dL)</div>
+                    <div class="metric-label">Current (mmol/L)</div>
                     <div class="metric-average">
-                        Avg: <span id="bloodSugarAvg">--</span> mg/dL
+                        Avg: <span id="bloodSugarAvg">--</span> mmol/L
                     </div>
                     <canvas id="bloodSugarChart"></canvas>
                     <div class="entry-list" id="bloodSugarList"></div>
@@ -114,7 +114,7 @@
                     <ul>
                         <li>Age: {{ profile.age }} years</li>
                         <li>Blood Pressure: {{ latest_metrics.systolic_bp }}/{{ latest_metrics.diastolic_bp }} mmHg</li>
-                        <li>Blood Sugar: {{ latest_metrics.blood_sugar }} mg/dL</li>
+                        <li>Blood Sugar: {{ latest_metrics.blood_sugar }} mmol/L</li>
                         <li>Body Temperature: {{ latest_metrics.body_temp }}°C</li>
                         <li>Heart Rate: {{ latest_metrics.heart_rate }} bpm</li>
                         <li>Date: {{ latest_metrics.date }}</li>
@@ -158,8 +158,8 @@
                    
                 <!-- Blood Sugar Fields -->
                 <div class="form-group" id="bloodSugarField" style="display: none;">
-                    <label for="bloodSugarValue">Blood Sugar (mg/dL)</label>
-                    <input type="number" id="bloodSugarValue" min="0" max="500" step="0.1" placeholder="e.g., 95">
+                    <label for="bloodSugarValue">Blood Sugar (mmol/L)</label>
+                    <input type="number" id="bloodSugarValue" min="0" max="30" step="0.1" placeholder="e.g., 5.5">
                 </div>
 
            

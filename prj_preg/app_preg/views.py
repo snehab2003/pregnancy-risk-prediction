@@ -10,6 +10,7 @@ import json
 import subprocess
 import os
 import sys
+from .chatbot import ask_chatbot
 
 
 def index(request):
@@ -83,6 +84,51 @@ def chat(request):
         context['profile'] = request.user.profile
     return render(request, 'chat.html', context)
 
+@csrf_exempt
+@require_POST
+@login_required
+def chat_api(request):
+    """API endpoint for interacting with the AI Chatbot."""
+    try:
+        data = json.loads(request.body)
+        user_message = data.get('message', '')
+        
+        if not user_message:
+            return JsonResponse({'error': 'Message cannot be empty'}, status=400)
+            
+        # Compile User Context for XAI
+        user = request.user
+        profile = user.profile if hasattr(user, 'profile') else None
+        
+        context_parts = []
+        if profile:
+            context_parts.append(f"Age: {profile.age}")
+            if profile.trimester:
+                trimesters = {1: 'First', 2: 'Second', 3: 'Third'}
+                context_parts.append(f"Trimester: {trimesters.get(profile.trimester)} Trimester")
+        
+        # Get latest health metrics
+        from .models import HealthMetric
+        latest_metrics = HealthMetric.objects.filter(user=user).order_by('-date', '-id').first()
+        if latest_metrics:
+            context_parts.append("LATEST HEALTH METRICS:")
+            context_parts.append(f"Blood Pressure: {latest_metrics.systolic_bp}/{latest_metrics.diastolic_bp} mmHg")
+            context_parts.append(f"Blood Sugar: {latest_metrics.blood_sugar} mmol/L")
+            context_parts.append(f"Body Temp: {latest_metrics.body_temp} C")
+            context_parts.append(f"Heart Rate: {latest_metrics.heart_rate} bpm")
+        
+        user_context_str = "\\n".join(context_parts) if context_parts else "No user profile data provided."
+        
+        # Ask Chatbot
+        bot_reply = ask_chatbot(user_message, user_context_str)
+        
+        return JsonResponse({'reply': bot_reply})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 @login_required
 def update_profile(request):
@@ -148,7 +194,7 @@ def risk(request):
 
         # Get latest health metrics for the user
         from .models import HealthMetric
-        latest_metrics = HealthMetric.objects.filter(user=request.user).order_by('-date').first()
+        latest_metrics = HealthMetric.objects.filter(user=request.user).order_by('-date', '-id').first()
         if latest_metrics:
             context['latest_metrics'] = latest_metrics
     return render(request, 'risk.html', context)
@@ -266,7 +312,7 @@ def get_health_data(request):
     """API endpoint to retrieve user's health metrics data."""
     try:
         from .models import HealthMetric
-        health_metrics = HealthMetric.objects.filter(user=request.user).order_by('-date')
+        health_metrics = HealthMetric.objects.filter(user=request.user).order_by('-date', '-id')
         
         data = []
         for metric in health_metrics:
